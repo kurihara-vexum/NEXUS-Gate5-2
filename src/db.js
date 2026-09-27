@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS loans (
   device_id INTEGER NOT NULL REFERENCES devices(id),
   borrower_id INTEGER NOT NULL REFERENCES users(id),
   due_date TEXT NOT NULL CHECK (due_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+  purpose VARCHAR(100) NOT NULL,
   loaned_at TEXT NOT NULL,
   returned_at TEXT NULL,
   CHECK (returned_at IS NULL OR returned_at >= loaned_at)
@@ -39,6 +40,10 @@ export function createDatabase(filename = "data/nexus.sqlite", { seed = true } =
   if (filename !== ":memory:") mkdirSync(dirname(filename), { recursive: true });
   const db = new DatabaseSync(filename);
   db.exec(SCHEMA);
+  const loanColumns = db.prepare("PRAGMA table_info(loans)").all();
+  if (!loanColumns.some((column) => column.name === "purpose")) {
+    db.exec("ALTER TABLE loans ADD COLUMN purpose VARCHAR(100) NOT NULL DEFAULT '未設定'");
+  }
   if (seed) seedDatabase(db);
   return db;
 }
@@ -60,8 +65,9 @@ export function seedDatabase(db) {
     insertDevice.run("TB-001", "iPad Air", "MAINTENANCE", now);
     insertDevice.run("PC-003", "Dell Latitude", "AVAILABLE", now);
     const borrower = db.prepare("SELECT id FROM users WHERE is_active = 1 ORDER BY id LIMIT 1").get();
-    db.prepare("INSERT INTO loans (device_id, borrower_id, due_date, loaned_at, returned_at) VALUES (2, ?, '2026-10-10', ?, NULL)")
-      .run(borrower.id, now);
+    const loanedDevice = db.prepare("SELECT id FROM devices WHERE asset_no = 'PC-002'").get();
+    db.prepare("INSERT INTO loans (device_id, borrower_id, due_date, purpose, loaned_at, returned_at) VALUES (?, ?, '2026-10-10', '開発業務', ?, NULL)")
+      .run(loanedDevice.id, borrower.id, now);
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");
@@ -72,7 +78,7 @@ export function seedDatabase(db) {
 export function resetDatabase(db) {
   db.exec("BEGIN IMMEDIATE");
   try {
-    db.exec("DELETE FROM loans; DELETE FROM devices;");
+    db.exec("DELETE FROM loans; DELETE FROM devices; DELETE FROM sqlite_sequence WHERE name IN ('loans', 'devices');");
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");

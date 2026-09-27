@@ -7,6 +7,8 @@ import { BusinessError } from "./domain/messages.js";
 import { checkoutDevice, getDashboard, returnDevice } from "./services/loan-service.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
+const HOST = process.env.HOST ?? "127.0.0.1";
+const AUTHENTICATED_USER_ID = Number(process.env.CURRENT_USER_ID ?? 1);
 const db = createDatabase(process.env.DB_FILE ?? "data/nexus.sqlite");
 const publicDir = fileURLToPath(new URL("../public", import.meta.url));
 const mimeTypes = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8" };
@@ -38,11 +40,13 @@ async function serveStatic(pathname, response) {
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
   try {
-    if (request.method === "GET" && url.pathname === "/api/dashboard") return sendJson(response, 200, getDashboard(db));
-    if (request.method === "POST" && url.pathname === "/api/loans") return sendJson(response, 201, checkoutDevice(db, await readJson(request)));
+    if (request.method === "GET" && url.pathname === "/api/dashboard") return sendJson(response, 200, getDashboard(db, { authenticatedUserId: AUTHENTICATED_USER_ID }));
+    if (request.method === "POST" && url.pathname === "/api/loans") {
+      return sendJson(response, 201, checkoutDevice(db, { ...(await readJson(request)), authenticatedUserId: AUTHENTICATED_USER_ID }));
+    }
     const returnMatch = url.pathname.match(/^\/api\/devices\/(\d+)\/return$/);
     if (request.method === "POST" && returnMatch) {
-      return sendJson(response, 200, returnDevice(db, { ...(await readJson(request)), deviceId: Number(returnMatch[1]) }));
+      return sendJson(response, 200, returnDevice(db, { ...(await readJson(request)), deviceId: Number(returnMatch[1]), authenticatedUserId: AUTHENTICATED_USER_ID }));
     }
     if (request.method === "POST" && url.pathname === "/api/reset") {
       resetDatabase(db);
@@ -53,9 +57,9 @@ const server = http.createServer(async (request, response) => {
   } catch (error) {
     if (error instanceof BusinessError) return sendJson(response, error.statusCode, { message: error.message });
     console.error(error);
-    sendJson(response, 500, { message: "サーバーエラーが発生しました。データは更新されていません。" });
+    sendJson(response, 500, { message: "データの更新に失敗しました。もう一度入力してください。" });
   }
 });
 
-server.listen(PORT, () => console.log(`NEXUS device lending: http://localhost:${PORT}`));
+server.listen(PORT, HOST, () => console.log(`NEXUS device lending: http://${HOST}:${PORT}`));
 export { server };
