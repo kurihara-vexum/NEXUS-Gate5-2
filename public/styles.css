@@ -1,0 +1,37 @@
+:root { color-scheme: light; --ink:#15201d; --muted:#66716d; --line:#d9e0dd; --paper:#fff; --green:#155b46; --green-soft:#e8f4ef; --red:#a52a24; --red-soft:#fff0ee; font-family:Inter,"Hiragino Sans","Yu Gothic UI",sans-serif; }
+* { box-sizing:border-box; }
+body { margin:0; color:var(--ink); background:#f1f4f2; line-height:1.6; }
+.shell { width:min(1080px,calc(100% - 36px)); margin:auto; padding:54px 0 80px; }
+header { display:flex; justify-content:space-between; align-items:flex-end; gap:30px; margin-bottom:28px; }
+.eyebrow { margin:0 0 4px; color:var(--green); font-size:11px; font-weight:800; letter-spacing:.18em; }
+h1 { margin:0; font-size:clamp(30px,5vw,48px); line-height:1.15; letter-spacing:-.04em; }
+.lead,.section-title p { margin:8px 0 0; color:var(--muted); }
+.panel { margin-bottom:20px; padding:28px; border:1px solid var(--line); border-radius:16px; background:var(--paper); box-shadow:0 10px 32px rgba(35,57,49,.05); }
+.section-title { display:flex; gap:14px; margin-bottom:24px; }
+.section-title>span { padding-top:5px; color:#7d9189; font:700 12px ui-monospace,monospace; }
+h2 { margin:0; font-size:20px; }
+.loan-form { display:grid; grid-template-columns:2fr 1.3fr 1.3fr auto; align-items:end; gap:14px; }
+label { display:grid; gap:7px; color:var(--muted); font-size:12px; font-weight:700; }
+select,input,button { min-height:44px; border-radius:8px; font:inherit; }
+select,input { width:100%; padding:0 11px; border:1px solid #bfc9c5; color:var(--ink); background:#fff; }
+small { font-weight:400; }
+button { padding:0 16px; border:1px solid var(--line); font-weight:700; cursor:pointer; background:#fff; }
+button:hover { filter:brightness(.97); }
+.primary { border-color:var(--green); color:#fff; background:var(--green); }
+.ghost { color:var(--green); }
+.message { margin-bottom:20px; padding:14px 18px; border-radius:10px; font-weight:800; }
+.message.error { color:var(--red); border:1px solid #f0b8b3; background:var(--red-soft); }
+.message.success { color:var(--green); border:1px solid #b7d9cc; background:var(--green-soft); }
+.demo-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+.demo-actions button { min-height:34px; color:var(--red); }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; white-space:nowrap; }
+th,td { padding:14px 12px; border-bottom:1px solid var(--line); text-align:left; }
+th { color:var(--muted); font-size:11px; letter-spacing:.05em; }
+.status { display:inline-block; padding:4px 9px; border-radius:999px; font-size:12px; font-weight:800; }
+.status.available { color:var(--green); background:var(--green-soft); }
+.status.loaned { color:#9b4d08; background:#fff3df; }
+.status.maintenance { color:#65706c; background:#edf0ef; }
+.return { min-height:34px; color:var(--green); }
+@media (max-width:820px) { .loan-form{grid-template-columns:1fr 1fr} header{align-items:flex-start;flex-direction:column} }
+@media (max-width:560px) { .loan-form{grid-template-columns:1fr} .panel{padding:20px} }
